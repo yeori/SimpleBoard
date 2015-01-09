@@ -91,14 +91,15 @@ public class TestUserDao {
 		user = userDao.insert(user);
 		assertEquals ( 3, userDao.findAll().size());
 		assertEquals ( 5002, user.getSeq().intValue());
+		assertUserFieldNotNull(user);
 	}
 
 	public static void assertUserFieldNotNull(UserVO user) {
-		assertNotNull ( user.getSeq());
-		assertNotNull ( user.getNickName());
-		assertNotNull ( user.getPassword());
-		assertNotNull ( user.getUserId());
-		assertNotNull ( user.getWhenJoined());		
+		assertNotNull ("seq is null", user.getSeq());
+		assertNotNull ("nickname is null", user.getNickName());
+		assertNotNull ("password is null", user.getPassword());
+		assertNotNull ("userid is null", user.getUserId());
+		assertNotNull ("join date is null", user.getWhenJoined());		
 	}
 	
 	

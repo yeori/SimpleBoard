@@ -139,9 +139,9 @@ public class UserDao implements IUserDao {
 				throw new DaoException("[error 5003] fail to insert new user : " + newUser);
 			}
 			int pk = readPk( stmt.getGeneratedKeys());
-			newUser.setSeq(pk);
+//			newUser.setSeq(pk);
 			conn.commit();
-			return newUser;
+			return findBySeq(pk);
 		} catch (SQLException e) {
 			throw new DaoException ("[error 5001] fail to insert new user", e);
 		} finally {
@@ -153,7 +153,7 @@ public class UserDao implements IUserDao {
 	@Override
 	public boolean existsUserId(String userId) {
 		// TODO 구현 안되었음.
-		return true;
+		return false;
 	}
 	@Override
 	public boolean exists(String userSeq) throws DaoException {
