@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `userid` (`userid`),
   UNIQUE KEY `nickname` (`nickname`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=5002 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5011 DEFAULT CHARSET=utf8;
 
 -- Dumping data for table demoboard.users: ~2 rows (대략적)
 DELETE FROM `users`;
