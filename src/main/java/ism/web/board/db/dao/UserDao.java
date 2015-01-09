@@ -151,6 +151,11 @@ public class UserDao implements IUserDao {
 	}
 
 	@Override
+	public boolean existsUserId(String userId) {
+		// TODO 구현 안되었음.
+		return true;
+	}
+	@Override
 	public boolean exists(String userSeq) throws DaoException {
 		// TODO 구현 안되었음
 		return false;

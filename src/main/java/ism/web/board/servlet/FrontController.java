@@ -1,11 +1,13 @@
 package ism.web.board.servlet;
 
 import ism.web.board.BoardContext;
+import ism.web.board.action.View;
 import ism.web.board.action.IAction;
 import ism.web.board.action.ListPostingAction;
 import ism.web.board.action.ListUserAction;
 import ism.web.board.action.UsderDeleteAction;
 import ism.web.board.action.UserLogin;
+import ism.web.board.action.Views;
 import ism.web.board.db.dao.IUserDao;
 import ism.web.board.model.UserVO;
 
@@ -54,27 +56,50 @@ public class FrontController extends HttpServlet {
 		process(request, response);
 	}
 	
-	private void process(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		BoardContext bctx = (BoardContext) this.getServletContext().getAttribute("board.context");
-		System.out.println(request.getRequestURI() + " : psize " + bctx.getPageSize());
-		
+	private String parsePath ( HttpServletRequest request )  {
+		String ctrl = "/ctrl";
 		String ctxpath = this.getServletContext().getContextPath();
 		String uri = request.getRequestURI();
-		String path = uri.substring(ctxpath.length());
-		System.out.println(path);
+		String path = uri.substring(ctxpath.length() + ctrl.length());
+		
+		return path ;
+	}
+	private void process(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		BoardContext bctx = (BoardContext) this.getServletContext().getAttribute("board.context");
+		System.out.println(request.getRequestURI() + " : psize " + bctx.getPageSize());		
+		String path = parsePath(request);
+		System.out.println("Path : " + path);
 		
 		BoardContext boardCtx  = (BoardContext) request.getServletContext().getAttribute("board.context");
 		
-		if ( path.endsWith("/users") ) {
+		View view = null;
+		if ( path.endsWith("/")) {
+			view = Views.FORWARD("index.jsp");
+		} else if ( path.equals("/users") ) {
 			System.out.println("사용자 목록 출력하는 요청");
 			IAction action = new ListUserAction();
-			action.process(boardCtx, request, response);
-		} else if ( path.endsWith("/users/delete")) {
-			new UsderDeleteAction().process(boardCtx, request, response); 
-		} else if ( path.endsWith("/login")) {
-			new UserLogin().process(boardCtx, request, response); 
-		} else if (path.endsWith("/postings")) {
-			new ListPostingAction().process(boardCtx, request, response);
+			view = action.process(boardCtx, request, response);
+		} else if ( path.equals("/users/delete")) {
+			view = new UsderDeleteAction().process(boardCtx, request, response); 
+		} else if ( path.equals("/login")) {
+			view = new UserLogin().process(boardCtx, request, response); 
+		} else if (path.equals("/postings")) {
+			view = new ListPostingAction().process(boardCtx, request, response);
+		} else if ( path.equals("/join")) {
+			// FIXME 이미 로그인한 사용자라면 아래 페이지를 보여주면 안됨.
+			view = Views.FORWARD("/WEB-INF/jsp/new-member.jsp");
+		}
+		
+		if ( view != null) {
+			System.out.println("next page : " + view.getPath() + " AS " + 
+					( view.isForward() ? "forwarding" : "redirection") );
+			if ( view.isForward()) {
+				request.getRequestDispatcher(view.getPath()).forward(request, response);
+			} else {
+				response.sendRedirect(view.getPath());
+			}
+		} else {
+			System.out.println("Unknown path : " + path);
 		}
 		
 //		request.getRequestDispatcher(path).forward(request, response);

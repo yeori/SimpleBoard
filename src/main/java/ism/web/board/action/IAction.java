@@ -10,7 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 
 public interface IAction {
 
-	public abstract void process(BoardContext ctx, HttpServletRequest request,
+	public abstract View process(BoardContext ctx,
+			HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException;
 
 }

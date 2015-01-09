@@ -35,4 +35,5 @@ public interface IUserDao {
 	public void delete(UserVO user) throws DaoException;
 	
 	public UserVO findUser(String usernm, String pw);
+	public boolean existsUserId(String userId);
 }

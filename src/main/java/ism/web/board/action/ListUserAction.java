@@ -14,10 +14,11 @@ import javax.servlet.http.HttpServletResponse;
 public class ListUserAction implements IAction {
 	
 	@Override
-	public void process(BoardContext ctx, HttpServletRequest request,HttpServletResponse response) throws ServletException, IOException {
+	public View process(BoardContext ctx, HttpServletRequest request,HttpServletResponse response) throws ServletException, IOException {
 		IUserDao userDao = ctx.getDaoRepository().getUserDao();
 		List<UserVO> users = userDao.findAll();
 		request.setAttribute("users", users);
-		request.getRequestDispatcher("/WEB-INF/jsp/list-user.jsp").forward(request, response);
+//		request.getRequestDispatcher("/WEB-INF/jsp/list-user.jsp").forward(request, response);
+		return Views.FORWARD("/WEB-INF/jsp/list-user.jsp") ;
 	}
 }

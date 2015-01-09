@@ -14,14 +14,16 @@ import javax.servlet.http.HttpServletResponse;
 public class ListPostingAction implements IAction {
 
 	@Override
-	public void process(BoardContext ctx, HttpServletRequest request,
+	public View process(BoardContext ctx, HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		
 		IPostingDao posDao = ctx.getDaoRepository().getPostingDao();
 		List<PostingVO> list = posDao.findAll();
 		
 		request.setAttribute("postings", list);
-		request.getRequestDispatcher("/WEB-INF/jsp/list-postings.jsp").forward(request, response);
+		return Views.FORWARD("/WEB-INF/jsp/list-postings.jsp");
+//		return new View("/WEB-INF/jsp/list-postings.jsp", false);
+//		request.getRequestDispatcher("/WEB-INF/jsp/list-postings.jsp").forward(request, response);
 	}
 
 }

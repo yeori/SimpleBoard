@@ -59,10 +59,17 @@ public class GatewayFilter implements Filter {
 		ServletContext ctx = fConfig.getServletContext();
 		String ctxpath = ctx.getContextPath();
 		String uri = req.getRequestURI();
-		String path = uri.substring(ctxpath.length());
+		String path = uri.substring(ctxpath.length()).trim();
 		
-		System.out.println("gateway filter : " + uri + " " + uri + ", path " + path );
-		if ( path.startsWith("/static") || path.endsWith(".jsp") || path.endsWith(".html") ) {			
+		if ( path.endsWith("/")) {
+			// TODO 요청 url이 '/' 로 끝나는 경우 제거해줘야 하는데
+			//      메인 페이지 요청( http://url.com/ ) 인 경우는 제거하면 안됨.
+			path = path.substring(0, path.length()-1);
+			System.out.println("stripped '/' : " + path);
+		}
+		
+		System.out.println("path [" + path + "]");
+		if ( path.equals("") || path.startsWith("/static") || path.endsWith(".jsp") || path.endsWith(".html") ) {
 			chain.doFilter(request, response);
 		} else {
 			req.getRequestDispatcher("/ctrl" + path ).forward(req, res);

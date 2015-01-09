@@ -22,7 +22,7 @@ public class UserLogin implements IAction {
 		return ctx.getServletContextPath();
 	}
 	@Override
-	public void process(BoardContext ctx, HttpServletRequest request,
+	public View process(BoardContext ctx, HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		IUserDao dao = ctx.getDaoRepository().getUserDao();
 		String usernm = request.getParameter("user");
@@ -40,6 +40,8 @@ public class UserLogin implements IAction {
 			session.setAttribute("user", user);
 			response.sendRedirect( url);
 		}
+		
+		return null; // FIXME action forward 구현중
 		
 	}
 
