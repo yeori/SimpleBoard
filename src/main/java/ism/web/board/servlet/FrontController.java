@@ -8,15 +8,11 @@ import ism.web.board.action.ListUserAction;
 import ism.web.board.action.UsderDeleteAction;
 import ism.web.board.action.UserLogin;
 import ism.web.board.action.Views;
-import ism.web.board.db.dao.IUserDao;
-import ism.web.board.model.UserVO;
+import ism.web.board.action.json.JoinAction;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebInitParam;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,14 +41,16 @@ public class FrontController extends HttpServlet {
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		process(request, response);
 	}
 
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+			throws ServletException, IOException {
 		process(request, response);
 	}
 	
@@ -64,7 +62,8 @@ public class FrontController extends HttpServlet {
 		
 		return path ;
 	}
-	private void process(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	private void process(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		BoardContext bctx = (BoardContext) this.getServletContext().getAttribute("board.context");
 		System.out.println(request.getRequestURI() + " : psize " + bctx.getPageSize());		
 		String path = parsePath(request);
@@ -88,6 +87,8 @@ public class FrontController extends HttpServlet {
 		} else if ( path.equals("/join")) {
 			// FIXME 이미 로그인한 사용자라면 아래 페이지를 보여주면 안됨.
 			view = Views.FORWARD("/WEB-INF/jsp/new-member.jsp");
+		} else if ( path.equals ( "/join.json")) {
+			view = new JoinAction().process(boardCtx, request, response);
 		}
 		
 		if ( view != null) {
