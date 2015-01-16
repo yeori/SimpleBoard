@@ -11,16 +11,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-/** 로그인 처리
+import org.json.simple.JSONObject;
+
+/** 로그인 처리 
  * 
+ * @reponse json
  * @author sangmin
  *
  */
 public class UserLogin implements IAction {
 
-	private String getContextPath(BoardContext ctx) {
-		return ctx.getServletContextPath();
-	}
+	@SuppressWarnings("unchecked")
 	@Override
 	public View process(BoardContext ctx, HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
@@ -31,18 +32,24 @@ public class UserLogin implements IAction {
 		
 		UserVO user = dao.findUser( usernm, pw);
 		
-		
-		String ctxPath = getContextPath(ctx);
+		View view = null;
+		JSONObject json = new JSONObject();
 		if ( user != null ) {
-			String url = ctxPath + "/login_ok.jsp";
-			System.out.println(" 로그인 성공 : " + url);
+			System.out.println(" 로그인 성공 : "); // FIXME 로그 관리 필요.
 			HttpSession session = request.getSession();
 			session.setAttribute("user", user);
-			response.sendRedirect( url);
+			
+			json.put("success", Boolean.TRUE);
+			json.put("nextUrl", ctx.getServletContextPath());
+			
+		} else {
+			json.put("success", Boolean.FALSE);
+			json.put("ecode", "e4000");
 		}
 		
-		return null; // FIXME action forward 구현중
+		request.setAttribute("json", json.toJSONString());
+		view = Views.FORWARD("/WEB-INF/jsp/json/json-response.jsp");
+		return view;
 		
 	}
-
 }

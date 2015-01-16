@@ -81,7 +81,10 @@ public class FrontController extends HttpServlet {
 		} else if ( path.equals("/users/delete")) {
 			view = new UsderDeleteAction().process(boardCtx, request, response); 
 		} else if ( path.equals("/login")) {
-			view = new UserLogin().process(boardCtx, request, response); 
+//			view = new UserLogin().process(boardCtx, request, response);
+			view = Views.FORWARD("/WEB-INF/jsp/login.jsp");
+		} else if (path.equals("/login.json")) {
+			view = new UserLogin().process(boardCtx, request, response);
 		} else if (path.equals("/postings")) {
 			view = new ListPostingAction().process(boardCtx, request, response);
 		} else if ( path.equals("/join")) {

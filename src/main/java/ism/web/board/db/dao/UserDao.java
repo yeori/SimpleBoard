@@ -173,10 +173,34 @@ public class UserDao implements IUserDao {
 
 	}
 
+	/**
+	 * userid 와 password로 사용자 정보를 얻어냄.
+	 */
 	@Override
 	public UserVO findUser(String usernm, String pw) {
-		// TODO 임시로 구현함.
-		return new UserVO();
+		String sql = "SELECT seq, userid, nickname, email, password, when_joined FROM users WHERE userId =  ? and password = ?";
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		conn = config.getConnection(false);
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.setString(1, usernm);
+			stmt.setString(2, pw);
+			
+			rs = stmt.executeQuery();
+			if ( rs.next()) {
+				UserVO user = readUser(rs);
+				return user;
+			} else {
+				return null ;
+			}
+			
+		} catch (SQLException e) {
+			throw new DaoException("[error 5004] fail to read all users", e);
+		} finally {
+			config.release(conn, stmt, rs);
+		}
 	}
 
 }
