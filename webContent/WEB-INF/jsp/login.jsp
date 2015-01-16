@@ -36,6 +36,13 @@
 <body>
 <div id="error-panel"></div>
 <form name="frm" id="frm">
+<%	
+	String qs = request.getQueryString();
+	if ( qs != null) { 
+		qs = qs.substring("target=".length());
+%>
+	<input type="hidden" name="target" value="<%=qs %>"/>
+<%}%>
 	<input type="text" name="user" value="" id="user"/>
 	<input type="password" name="password" id="password" />
 	<input type="button" value="로그인" id="btnLogin"/>

@@ -5,6 +5,8 @@ import ism.web.board.db.dao.IUserDao;
 import ism.web.board.model.UserVO;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -28,7 +30,8 @@ public class UserLogin implements IAction {
 		IUserDao dao = ctx.getDaoRepository().getUserDao();
 		String usernm = request.getParameter("user");
 		String pw = request.getParameter("password");
-		System.out.println("user="+usernm+"password="+pw);
+		String targetUrl = getNextUrl (ctx, request); // .getParameter("target");
+		System.out.println("user="+usernm+"password="+pw + " and move to " + targetUrl);
 		
 		UserVO user = dao.findUser( usernm, pw);
 		
@@ -40,7 +43,7 @@ public class UserLogin implements IAction {
 			session.setAttribute("user", user);
 			
 			json.put("success", Boolean.TRUE);
-			json.put("nextUrl", ctx.getServletContextPath());
+			json.put("nextUrl", ctx.getServletContextPath() + targetUrl);
 			
 		} else {
 			json.put("success", Boolean.FALSE);
@@ -52,4 +55,20 @@ public class UserLogin implements IAction {
 		return view;
 		
 	}
+
+	private String getNextUrl(BoardContext ctx, HttpServletRequest request) {
+		String url = request.getParameter("target");
+		if ( url == null || url.trim().length() == 0 ) {
+			url = ctx.getServletContextPath();
+		} else {
+			try {
+				url = URLDecoder.decode(url, "utf-8");
+			} catch (UnsupportedEncodingException e) {
+				// 발생할 일이 없음.
+				e.printStackTrace();
+			}
+		}
+		return url;
+	}
+	
 }
