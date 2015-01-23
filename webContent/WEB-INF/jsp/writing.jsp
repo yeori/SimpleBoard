@@ -21,7 +21,7 @@
 		checkParams ( title, content);
 		
 		$.post ( ctxpath + '/write.json', $('#frm').serialize(), function(json){
-			if ( json.sucess) {
+			if ( json.success) {
 				document.location.href = json.nextUrl;
 			} else {
 				$('#error-panel').html (ERR_MSG[json.ecode].msg);
