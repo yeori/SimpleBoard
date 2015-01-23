@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.json.simple.JSONObject;
+
 /**
  * Servlet Filter implementation class LoginCheckFilter
  */
@@ -50,8 +52,6 @@ public class LoginCheckFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		// TODO Auto-generated method stub
 		// place your code here
-		System.out.println("ddddddddddddddd");
-		// pass the request along the filter chain
 		HttpServletRequest req = (HttpServletRequest) request;
 		HttpServletResponse res = (HttpServletResponse) response;
 		
@@ -62,12 +62,32 @@ public class LoginCheckFilter implements Filter {
 		// 로그인하지 않고 접근한 경우
 			String path  = parsePath(req);
 			System.out.println(path);
-			view = moveToLoginPage(req, res);
-			res.sendRedirect(view.getPath());
+			if ( isJsonRequest(path)) {
+				// 비동기 방식의 요청인 경우 json 응답
+				JSONObject json = new JSONObject();
+				createLoginRequiredResponse(json);
+				request.setAttribute("json", json.toJSONString());
+				view = Views.FORWARD("/WEB-INF/jsp/json/json-response.jsp");
+				req.getRequestDispatcher(view.getPath()).forward(req, res);
+			} else {
+				// 동기 방식의 요청인 경우는 redirect
+				view = moveToLoginPage(req, res);
+				res.sendRedirect(view.getPath());
+			}
 		} else {
 			
 			chain.doFilter(request, response);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void createLoginRequiredResponse(JSONObject json) {
+		json.put("success", false);
+		json.put("cause", "LOGIN_REQUIRED");
+	}
+
+	private boolean isJsonRequest(String path) {
+		return path.endsWith(".json");
 	}
 
 	/**
