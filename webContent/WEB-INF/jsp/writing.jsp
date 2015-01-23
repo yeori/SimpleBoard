@@ -22,7 +22,7 @@
 		
 		$.post ( ctxpath + '/write.json', $('#frm').serialize(), function(json){
 			if ( json.success) {
-				document.location.href = json.nextUrl;
+				document.location.href = ctxpath + json.nextUrl;
 			} else {
 				$('#error-panel').html (ERR_MSG[json.ecode].msg);
 			}
@@ -36,6 +36,7 @@
 </script>
 </head>
 <body>
+<div id="error-panel"></div>
 <form name="frm" id="frm">
 <div>제목 <input type="text" name="title" id="title" size="20"></div>
 <div><textarea name="content" id="content"></textarea></div>

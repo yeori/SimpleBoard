@@ -84,6 +84,7 @@ public class LoginCheckFilter implements Filter {
 	private void createLoginRequiredResponse(JSONObject json) {
 		json.put("success", false);
 		json.put("cause", "LOGIN_REQUIRED");
+		json.put("ecode", "e4003");
 	}
 
 	private boolean isJsonRequest(String path) {
