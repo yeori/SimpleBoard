@@ -97,16 +97,7 @@ public class FrontController extends HttpServlet {
 		} else if ( path.equals ( "/join.json")) {
 			view = new JoinAction().process(boardCtx, request, response);
 		} else if ( path.equals ( "/write")) {
-			// FIXME 이 부분은 servlet filter로 빼는게 좋음.
-			UserVO user = getUserInSession ( request) ;
-			
-			if ( user == null ) {
-				// 로그인하지 않고 접근한 경우
-				view = moveToLoginPage(request, response);
-			} else {
-				
 				view = Views.FORWARD("/WEB-INF/jsp/writing.jsp");
-			}
 		} else if ( path.equals ( "/write.json")) {
 			view = new NewPost().process (boardCtx, request, response );
 		}
@@ -126,29 +117,4 @@ public class FrontController extends HttpServlet {
 //		request.getRequestDispatcher(path).forward(request, response);
 		
 	}
-	
-	private UserVO getUserInSession(HttpServletRequest request) {
-		HttpSession session = request.getSession(false);
-		// 생성된 session이 없으면 user는 당연히 없음.
-		if ( session == null ) {
-			return null;
-		}
-		return (UserVO) session.getAttribute("user");
-	}
-	
-	private View moveToLoginPage(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		String urlToGo = parsePath(request);
-		
-		String queryPart = request.getQueryString();
-		if ( queryPart != null) {
-			urlToGo += "?" + queryPart ;
-		}
-		urlToGo = URLEncoder.encode(urlToGo, "UTF-8");
-		
-		String login = "/SimpleBoard/login" + "?target=" + urlToGo;
-		System.out.println("[LOGIN-REQUIRED]" + login);
-//		response.sendRedirect(login);
-		return Views.REDIRECT(login);
-	}
-
 }
