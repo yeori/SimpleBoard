@@ -11,5 +11,12 @@ public interface IPostingDao {
 	public PostingVO findBySeq ( int seq) throws DaoException;
 	
 	public PostingVO insert(PostingVO posting) throws DaoException;
+
+	/**
+	 * 조회수를 변경함(글을 조회할때 사용됨)
+	 * @param seq
+	 * @param viewCount
+	 */
+	public boolean updateViewCount(int seq, int viewCount);
 	
 }

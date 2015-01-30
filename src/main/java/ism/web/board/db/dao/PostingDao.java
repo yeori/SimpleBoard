@@ -117,4 +117,30 @@ public class PostingDao implements IPostingDao {
 		}
 	}
 	
+	@Override
+	public boolean updateViewCount(int seq, int viewCount) {
+		String query = "UPDATE postings SET views = ? WHERE seq = ?";
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		
+		try {
+			conn = config.getConnection(false);
+			stmt = conn.prepareStatement(query);
+			stmt.setInt(1, viewCount);
+			stmt.setInt(2, seq);
+			
+			int cnt = stmt.executeUpdate();
+			if( cnt != 1 ) {
+				throw new SQLException("query succeeded, but not updated");
+			}
+			conn.commit();
+			return true;
+		} catch (SQLException e) {
+			throw new DaoException("fail to update view count for POSTING:" + seq , e);
+		} finally {
+			config.release(conn, stmt, null);
+		}
+		
+	}
+	
 }
