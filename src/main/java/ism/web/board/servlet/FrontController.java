@@ -8,18 +8,17 @@ import ism.web.board.action.ListPostingAction;
 import ism.web.board.action.ListUserAction;
 import ism.web.board.action.UsderDeleteAction;
 import ism.web.board.action.UserLogin;
+import ism.web.board.action.ViewPosting;
 import ism.web.board.action.Views;
 import ism.web.board.action.json.JoinAction;
-import ism.web.board.model.UserVO;
+import ism.web.board.util.BoardUtil;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  * Servlet implementation class FrontController
@@ -76,6 +75,8 @@ public class FrontController extends HttpServlet {
 		BoardContext boardCtx  = (BoardContext) request.getServletContext().getAttribute("board.context");
 		
 		View view = null;
+		
+		
 		if ( path.endsWith("/")) {
 			view = Views.FORWARD("index.jsp");
 		} else if ( path.equals("/users") ) {
@@ -100,6 +101,9 @@ public class FrontController extends HttpServlet {
 				view = Views.FORWARD("/WEB-INF/jsp/writing.jsp");
 		} else if ( path.equals ( "/write.json")) {
 			view = new NewPost().process (boardCtx, request, response );
+		} else if ( BoardUtil.isViewPostingPath(path) ) {
+			// check if '/posting/:NUMBER'
+			view = new ViewPosting().process(boardCtx, request, response);
 		}
 		
 		if ( view != null) {
