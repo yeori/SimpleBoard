@@ -3,21 +3,41 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="User">
-	<select id="userBySeq" parameterType="Integer" resultType="ism.web.board.model.UserVO">
+	<resultMap type="ism.web.board.model.UserVO" id="fullUserMap">
+		<constructor>
+			<idArg column="seq" javaType="Integer"/>
+			<arg column="userid" javaType="string" />
+			<arg column="nickname" javaType="string"/>
+			<arg column="email" javaType="string"/>
+			<arg column="password" javaType="string"/>
+			<arg column="when_joined" javaType="string"/>
+		</constructor>
+	</resultMap>
+	<resultMap type="ism.web.board.model.UserVO" id="userSetterMap">
+		<result column="seq" property="seq"/>
+		<result column="userid"  property="userId"/>
+		<result column="nickname" property="nickName"/>
+		<result column="email" property="email"/>
+		<result column="password" property="password"/>
+		<result column="when_joined" property="whenJoined"/>
+	</resultMap>
+<!--<select id="userBySeq" parameterType="Integer" resultType="ism.web.board.model.UserVO"> -->
+	<select id="userBySeq" parameterType="Integer" resultMap="fullUserMap">
 		SELECT 
 			seq, 
-			userid as userId, 
-			nickname as nickName, 
+			userid, 
+			nickname, 
 			email, 
 			password, 
-			when_joined as whenJoined 
+			when_joined 
 		FROM users WHERE seq = #{seq}
 	</select>
-	<select id="userById" parameterType="string" resultType="ism.web.board.model.UserVO">
+<!-- <select id="userById" parameterType="string" resultType="ism.web.board.model.UserVO"> -->
+	<select id="userById" parameterType="string" resultMap="userSetterMap">
 		SELECT
 			seq, 
-			userid as userId, 
-			nickname as nickName, 
+			userid, 
+			nickname, 
 			email, 
 			password, 
 			when_joined as whenJoined 

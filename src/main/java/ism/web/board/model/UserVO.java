@@ -7,7 +7,7 @@ public class UserVO {
 	private String email;
 	private String password;
 	private String whenJoined;
-	public UserVO(int seq, String userId, String nickName, String email,
+	public UserVO(Integer seq, String userId, String nickName, String email,
 			String password, String whenJoined) {
 		this.seq = seq;
 		this.userId = userId;
