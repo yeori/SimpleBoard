@@ -49,6 +49,7 @@ public class TestCollections {
 		public ThreadA(Semaphore sem, ArrayList<String> myList) {
 			// TODO Auto-generated constructor stub
 			this.sem = sem;
+			this.list = myList;
 		}
 		private Semaphore sem = null;
 		private Lock lock = null;
@@ -84,7 +85,7 @@ public class TestCollections {
 					
 		public ThreadB(Semaphore sem, List<String> myList) {
 			// TODO Auto-generated constructor stub
-			this.list = list;
+			this.list = myList;
 			this.sem = sem;
 		}
 		
