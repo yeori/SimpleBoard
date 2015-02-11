@@ -9,14 +9,14 @@
 		<typeAlias type="ism.web.board.model.UserVO" alias="User"/>
 		<typeAlias type="ism.web.board.model.PostingVO" alias="Posting"/>
 	</typeAliases>
-	<environments default="dev">
-		<environment id="dev">
+	<environments default="junit">
+		<environment id="junit">
 			<transactionManager type="JDBC"></transactionManager>
 			<dataSource type="POOLED">
-				<property name="driver" value="${dev.driver}" />
-				<property name="url" value="${dev.demoboard.url}" />
-				<property name="username" value="${dev.demoboard.user}" />
-				<property name="password" value="${dev.demoboard.password}" />
+				<property name="driver" value="${junit.driver}" />
+				<property name="url" value="${junit.demoboard.url}" />
+				<property name="username" value="${junit.demoboard.user}" />
+				<property name="password" value="${junit.demoboard.password}" />
 			</dataSource>
 		</environment>
 	</environments>
