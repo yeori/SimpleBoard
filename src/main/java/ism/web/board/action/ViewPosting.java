@@ -26,7 +26,7 @@ public class ViewPosting implements IAction {
 		int pid = parsePostingId ( request) ;
 		IPostingDao postingDao = ctx.getDaoRepository().getPostingDao();
 		
-		PostingVO posting = postingDao.findBySeq(pid);
+		PostingVO posting = postingDao.findBySeq(pid, true);
 		
 		View next = null;
 		if ( posting == null ) {
