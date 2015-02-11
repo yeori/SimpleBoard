@@ -43,4 +43,42 @@
 			when_joined as whenJoined 
 		FROM users WHERE userid = #{seq}
 	</select>
+	
+	<select id="findById" parameterType="string" resultMap="fullUserMap">
+		SELECT
+			seq, 
+			userid, 
+			nickname, 
+			email, 
+			password, 
+			when_joined
+		FROM users WHERE userid = #{seq}
+	</select>
+	
+	<select id="findAll" resultMap="fullUserMap">
+		SELECT
+			seq, 
+			userid, 
+			nickname, 
+			email, 
+			password, 
+			when_joined
+		FROM users
+	</select>
+	
+	<select id="login" parameterType="hashmap" resultMap="fullUserMap">
+		SELECT 
+			seq, 
+			userid, 
+			nickname, 
+			email, 
+			password, 
+			when_joined 
+		FROM users WHERE userId =  #{id} and password = #{pass}
+	</select>
+	<!-- 새로운 user 추가 -->
+	<insert id="newUser" parameterType="User" useGeneratedKeys="true" keyColumn="seq" keyProperty="seq">
+		INSERT INTO users (userid, nickname, email, `password`) 
+		VALUES (#{userId}, #{nickName}, #{email}, #{password})
+	</insert>
 </mapper>
