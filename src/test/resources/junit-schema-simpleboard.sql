@@ -53,8 +53,8 @@ CREATE TABLE IF NOT EXISTS `users` (
 DELETE FROM `users`;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` (`seq`, `userid`, `nickname`, `email`, `password`, `when_joined`) VALUES
-	(5000, 'james', 'james', 'james@naver.com', '', '2014-12-22 13:25:26'),
-	(5001, 'kkongkkong', '김꽁꽁', 'kongkong@gmail.com', '', '2014-12-23 09:53:09');
+	(5000, 'james', 'james', 'james@naver.com', '1111', '2014-12-22 13:25:26'),
+	(5001, 'kkongkkong', '김꽁꽁', 'kongkong@gmail.com', '1111', '2014-12-23 09:53:09');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
