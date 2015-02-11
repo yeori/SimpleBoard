@@ -2,14 +2,13 @@ package ism.web.board.db.dao;
 
 import ism.web.board.db.DbConfig;
 import ism.web.board.model.PostingVO;
-import ism.web.board.model.UserVO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.session.SqlSession;
 
 public class PostingDao implements IPostingDao {
 	private DbConfig config;
@@ -18,129 +17,104 @@ public class PostingDao implements IPostingDao {
 		this.config = config;
 	}
 	
-	private int getPk( ResultSet rs) throws SQLException {
+	/**
+	 * 주어진 PK의 글을 읽어들임. 
+	 * 
+	 * @param seq 읽어들일 글의 PK
+	 * @param updateViewCount true 이면 조회수 1 증가시킴.
+	 */
+	@Override
+	public PostingVO findBySeq( int seq, boolean updateViewCount) throws DaoException {
 		
-		if ( rs.next()) {
-			return rs.getInt(1);
-		} else {
-			throw new SQLException("[error 4002] fail to get PK ");
+		SqlSession session = config.getSqlSessionFactory().openSession(false);
+		PostingVO posting = null;
+		
+		try {
+			posting = findBySeq(session, seq);
+			if ( updateViewCount) {
+				Integer newViewCnt = posting.getViewCount() + 1;
+				updateViewCount(session, seq, newViewCnt);
+				posting.setViewCount(newViewCnt);
+			}
+			session.commit();
+			return posting;
+		} catch ( SQLException e) {
+			throw new DaoException(e.getMessage(), e);
+		} finally {
+			session.close();
 		}
 	}
 	
-	@Override
-	public PostingVO findBySeq( int seq) throws DaoException {
-		String query = "SELECT seq, title, content, views, when_created, fk_writer FROM postings WHERE seq = ?";
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
+
+	PostingVO findBySeq (SqlSession session, int seq) {
+		PostingVO posting = null;
 		
-		try {
-			conn = config.getConnection(false);
-			stmt = conn.prepareStatement(query);
-			stmt.setInt(1, seq);
-			rs = stmt.executeQuery();
-		
-			PostingVO posting = null;
-			if ( rs.next()) {
-				posting = asPosting(rs);
-			}
-			return posting;
-		} catch (SQLException e) {
-			throw new DaoException("[error 4000] fail to read all postings", e);
-		} finally {
-			config.release(conn, stmt, rs);
-		}
+		posting = session.selectOne("Posting.findBySeq", seq);
+		return posting;
 	}
+	
 	@Override
 	public PostingVO insert(PostingVO posting) throws DaoException {
-		String query = "INSERT INTO postings (title, content, fk_writer) VALUES (?, ?, ?)";
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		
+		SqlSession session = config.getSqlSessionFactory().openSession(false);
 		try {
-			conn = config.getConnection(false);
-			stmt = conn.prepareStatement(query);
-			stmt.setString( 1, posting.getTitle());
-			stmt.setString( 2, posting.getContent());
-			stmt.setInt( 3, posting.getWriter().getSeq());
-			
-			int cnt = stmt.executeUpdate();
-			if ( cnt != 1) {
-				throw new DaoException("[error 4003] fail to insert new posting : update count is " + cnt );
+			int insertCount = session.insert("Posting.newPosting", posting);
+			if ( insertCount != 1) {
+				throw new SQLException("새글 삽입 실패 : " + posting);
 			}
-			
-			int pk = getPk ( stmt.getGeneratedKeys());
-			conn.commit();
-			
-			
-			return findBySeq(pk) ;
+			session.commit();
+			return findBySeq( session, posting.getSeq());
 		} catch (SQLException e) {
-			throw new DaoException("[error 4001] fail to insert new posting :" + posting + ", query : " + stmt , e);
+			throw new DaoException(e.getMessage(), e);
 		} finally {
-			config.release(conn, stmt, rs);
+			session.close();
 		}
 	}
 
-	private PostingVO asPosting( ResultSet rs) throws SQLException {
-		int seq = rs.getInt("seq");
-		String title = rs.getString("title");
-		String content = rs.getString("content");
-		int viewCount = rs.getInt("views");
-		String whenCreated = rs.getString("when_created");
-		UserVO writer = config.getDaoRepository().getUserDao().findBySeq(rs.getInt("fk_writer"));
-		PostingVO posting = new PostingVO(seq, title, content, viewCount, whenCreated, writer);
-		return posting;
-	}
 	@Override
 	public List<PostingVO> findAll() throws DaoException {
-		String query = "SELECT seq, title, content, views, when_created, fk_writer FROM postings";
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		
+		SqlSession session = config.getSqlSessionFactory().openSession(false);
 		try {
-			conn = config.getConnection(false);
-			stmt = conn.prepareStatement(query);
-			
-			rs = stmt.executeQuery();
-			
-			List<PostingVO> postings = new ArrayList<PostingVO>();
-			while ( rs.next()) {
-				postings.add(asPosting(rs));
-			}
-			return postings;
-		} catch (SQLException e) {
-			throw new DaoException("[error 4000] fail to read all postings", e);
+			return session.selectList("Posting.findAll");
 		} finally {
-			config.release(conn, stmt, rs);
+			session.close();
 		}
 	}
 	
-	@Override
-	public boolean updateViewCount(int seq, int viewCount) {
-		String query = "UPDATE postings SET views = ? WHERE seq = ?";
-		Connection conn = null;
-		PreparedStatement stmt = null;
+	void updateViewCount(SqlSession session, int seq, int viewCount) throws SQLException {
+		Map<String, Integer> params = new HashMap<String, Integer>();
+		params.put("postingId", seq);
+		params.put("viewCount", viewCount);
+		int updateCount = session.update("Posting.updateViewCount", params);
 		
-		try {
-			conn = config.getConnection(false);
-			stmt = conn.prepareStatement(query);
-			stmt.setInt(1, viewCount);
-			stmt.setInt(2, seq);
-			
-			int cnt = stmt.executeUpdate();
-			if( cnt != 1 ) {
-				throw new SQLException("query succeeded, but not updated");
-			}
-			conn.commit();
-			return true;
-		} catch (SQLException e) {
-			throw new DaoException("fail to update view count for POSTING:" + seq , e);
-		} finally {
-			config.release(conn, stmt, null);
+		if ( updateCount != 1) {
+			throw new SQLException("조회수 갱신 실패 : posting[" + seq + "] count[" + viewCount + "]");
 		}
 		
+	}
+	@Override
+	public boolean updateViewCount(int seq, int viewCount) {
+		SqlSession session = config.getSqlSessionFactory().openSession(false);
+		
+		try {
+			updateViewCount(session, seq, viewCount);
+			session.commit();
+			return true;
+		} catch ( SQLException e) {
+			session.rollback();
+			throw new DaoException(e.getMessage(), e);
+		} finally {
+			session.close();
+		}
+	}
+
+	@Override
+	public String getName() {
+		return "postingDao";
+	}
+
+	@Override
+	public IPostingDao getDao() {
+		return this;
 	}
 	
 }

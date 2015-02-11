@@ -30,6 +30,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public class TestJoinAction {
+
+	static DaoRepository daoRepo = Mockito.mock(DaoRepository.class);
 	MockBoardContext ctx;
 	MockRequest request;
 	HttpServletResponse response;
@@ -40,8 +42,7 @@ public class TestJoinAction {
 	@Before
 	public void setUp() throws Exception {
 		DbConfig mockDbconfig = Mockito.mock(DbConfig.class);
-		ServletContext sctx = Mockito.mock(ServletContext.class);
-		ctx = new MockBoardContext(mockDbconfig, sctx);
+		ServletContext sctx = Mockito.mock(MockServletContext.class);
 		
 		request = Mockito.mock(MockRequest.class);
 		response = Mockito.mock(HttpServletResponse.class);
@@ -57,6 +58,17 @@ public class TestJoinAction {
 		Mockito.doCallRealMethod()
 			.when( request)
 			.getAttribute(anyString());
+		
+//		Mockito.doCallRealMethod()
+//			.when( sctx )
+//			.setAttribute(anyString(), anyObject());
+//		
+//		Mockito.doCallRealMethod()
+//			.when( sctx )
+//			.getAttribute(anyString());
+		Mockito.when(sctx.getAttribute(BoardContext.ATT_DAO_REPOSITORY)).thenReturn(daoRepo);
+		ctx = new MockBoardContext(mockDbconfig, sctx);
+		
 	}
 
 	@After
@@ -111,14 +123,32 @@ public class TestJoinAction {
 		Mockito.when(req.getParameter(key)).thenReturn(val);
 	}
 	
+	abstract static class MockServletContext implements ServletContext {
+		private Map<String, Object> attrs ;
+		
+		@Override
+		public void setAttribute(String name, Object o) {
+			if ( attrs == null ) {
+				attrs = new HashMap<String, Object>();
+			}
+			attrs.put(name, o);
+		}
+		
+		@Override
+		public Object getAttribute(String name) {
+			return attrs.get(name);
+		}
+	}
 	static class MockBoardContext extends BoardContext {
 
-		private DaoRepository daoRepo = Mockito.mock(DaoRepository.class);
 		private IUserDao userDao = Mockito.mock ( IUserDao.class);
 		private IPostingDao postingDao = Mockito.mock(IPostingDao.class);
 		
 		public MockBoardContext(DbConfig mockDbconfig, ServletContext sctx) {
 			super( mockDbconfig, sctx);
+//			sctx.setAttribute(ATT_DAO_REPOSITORY, daoRepo);
+			
+			Mockito.when(sctx.getAttribute(ATT_DAO_REPOSITORY)).thenReturn(daoRepo);
 			Mockito.when(mockDbconfig.getDaoRepository()).thenReturn(daoRepo);
 			
 			Mockito.when(daoRepo.getUserDao()).thenReturn ( userDao);

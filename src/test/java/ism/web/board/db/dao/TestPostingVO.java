@@ -9,6 +9,9 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.util.Properties;
 
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -23,26 +26,19 @@ public class TestPostingVO {
 	static PostingDao dao;
 	static String NOT_USED = null;
 	Connection conn = null;
+	
 	@BeforeClass
 	public static void setUpClass() throws Exception {
-		InputStream is = TestUserDao.class.getClassLoader().getResourceAsStream("dbconn.properties");
-		assertNotNull ("fail to find dbconn.properties", is) ;
-		
-		Properties props = new Properties();
-		props.load(is);
-		
-		String url = props.getProperty("junit.demoboard.url");
-		String user = props.getProperty("junit.demoboard.user");
-		String password = props.getProperty("junit.demoboard.password");
-		
-		config = new DbConfig(url, user, password);
+		InputStream in = Resources.getResourceAsStream("mybatis-junit-config.xml");
+		SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
+		config = new DbConfig(null, factory);
 		dao = new PostingDao(config);
 	}
 
 	@Before
 	public void setUp() throws Exception {
-		conn = config.getConnection(false);
-		helper.resetDB(config.getConnection(false), "junit-schema-simpleboard.sql", new MySqlQueryParser());
+		conn = config.getSqlSessionFactory().openSession().getConnection();
+		helper.resetDB(conn, "junit-schema-simpleboard.sql", new MySqlQueryParser());
 	}
 	
 	@After
@@ -71,7 +67,7 @@ public class TestPostingVO {
 		assertNotNull ( posting.getSeq());
 		assertNotNull ( posting.getTitle());
 		assertNotNull ( posting.getContent());
-//		assertNotNull ( posting.getViewCount());
+		assertNotNull ( posting.getViewCount());
 		assertNotNull ( posting.getWhenCreated());
 		assertNotNull ( posting.getWriter());
 		TestUserDao.assertUserFieldNotNull(posting.getWriter());

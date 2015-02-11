@@ -8,6 +8,9 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.util.Properties;
 
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -23,32 +26,19 @@ public class TestUserDao {
 	static DbTestHelper helper = new DbTestHelper();
 	
 	Connection conn = null;
-	//TestUserDaoData data = new TestUserDaoData(null);
+
 	@BeforeClass
 	public static void setUpClass() throws Exception {
-		InputStream is = TestUserDao.class.getClassLoader().getResourceAsStream("dbconn.properties");
-		
-		//InputStream iss = TestUserDao.class.getResourceAsStream("dbcon.properties");
-		assertNotNull ("fail to find dbconn.properties", is) ;
-		Properties p = new Properties();
-		p.load(is);
-		
-//		p.getProperty("");
-//		Properties props = new Properties();
-//		props.load(is);
-		
-		String url = p.getProperty("junit.demoboard.url");
-		String user = p.getProperty("junit.demoboard.user");
-		String password = p.getProperty("junit.demoboard.password");
-		
-		config = new DbConfig(url, user, password);
+		InputStream in = Resources.getResourceAsStream("mybatis-junit-config.xml");
+		SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
+		config = new DbConfig(null, factory);
 		
 	}
 
 	@Before
 	public void setUp() throws Exception {
-		conn = config.getConnection(false);
-		helper.resetDB(config.getConnection(false), "junit-schema-simpleboard.sql", new MySqlQueryParser());
+		conn = config.getSqlSessionFactory().openSession(false).getConnection();
+		helper.resetDB(conn, "junit-schema-simpleboard.sql", new MySqlQueryParser());
 	}
 	
 	@After
@@ -63,6 +53,12 @@ public class TestUserDao {
 		
 	}
 	
+	@Test
+	public void test_get_by_seq() {
+		UserDao userDao = new UserDao(config);
+		UserVO user = userDao.findBySeq(5000);
+		assertUserFieldNotNull(user);
+	}
 	@Test
 	public void test_get_UserId() {
 		IUserDao userDao = new UserDao(config);
@@ -79,19 +75,28 @@ public class TestUserDao {
 	@Test
 	public void test_when_no_such_userId() {
 		IUserDao userDao = new UserDao(config);
-		UserVO user = null;
 		assertNull( userDao.findById("no_such_userid") );
 	}
 	
 	@Test
 	public void test_insert_new_user() {
 		//'moms', '맘이', 'mam@gmail.com', 'mmmm'
-		IUserDao userDao = new UserDao(config);
+		UserDao userDao = new UserDao(config);
 		UserVO user = new UserVO("moms", "맘이", "mom@naver.com", "mmmm");
 		user = userDao.insert(user);
 		assertEquals ( 3, userDao.findAll().size());
 		assertEquals ( 5002, user.getSeq().intValue());
 		assertUserFieldNotNull(user);
+	}
+	
+	@Test
+	public void test_findUser() {
+		UserDao dao = new UserDao(config);
+		UserVO user = dao.findUser("james", "1111");
+		assertUserFieldNotNull(user);
+		
+		assertNull ( dao.findUser("james", "invalid pass"));
+		assertNull ( dao.findUser("invalid ID", "any value"));
 	}
 
 	public static void assertUserFieldNotNull(UserVO user) {

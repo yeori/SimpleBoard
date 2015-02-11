@@ -8,146 +8,77 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.session.SqlSession;
 
 public class UserDao implements IUserDao {
 	private DbConfig config ;
 	public UserDao(DbConfig config) {
 		this.config = config;
 	}
-
-	/**
-	 * ResultSet에서 UserVO 인스턴스를 생성함.
-	 * 
-	 * @param rs
-	 * @return
-	 * @throws SQLException
-	 */
-	private UserVO readUser(ResultSet rs) throws SQLException {
-		int seq = rs.getInt("seq");
-		String userId = rs.getString("userid");
-		String nickName = rs.getString("nickname");
-		String email = rs.getString("email");
-		String password = rs.getString("password");
-		String when_joined = rs.getString("when_joined");
-		
-		UserVO user = new UserVO(seq, userId, nickName, email, password, when_joined);
-		return user;
-	}
 	
 	@Override
 	public List<UserVO> findAll() throws DaoException {
 		// "moms", "맘이", "mom@naver.com", "mmmm"
-		String sql = "SELECT seq, userid, nickname, email, password, when_joined FROM users";
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		conn = config.getConnection(false);
+		List<UserVO> users = null;
+		SqlSession session = config.getSqlSessionFactory().openSession(false);
 		try {
-			List<UserVO> users = new ArrayList<UserVO>();
-			stmt = conn.prepareStatement(sql);
-			rs = stmt.executeQuery();
-			while ( rs.next()) {
-				users.add( readUser(rs));
-			}
-			
+			users = session.selectList("User.findAll");
 			return users;
-		} catch (SQLException e) {
-			throw new DaoException("[error 5004] fail to read all users", e);
 		} finally {
-			config.release(conn, stmt, null);
+			session.close();
 		}
 	}
-
+	UserVO findBySeq( SqlSession session, Integer seq) throws DaoException {
+			UserVO user = session.selectOne("User.userBySeq", seq);
+			return user;
+	}
+	
 	public UserVO findBySeq ( int seq) throws DaoException {
-		String sql = "SELECT seq, userid, nickname, email, password, when_joined FROM users WHERE seq =  ?";
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		conn = config.getConnection(false);
+		SqlSession session = config.getSqlSessionFactory().openSession(false);
+		
 		try {
-			stmt = conn.prepareStatement(sql);
-			stmt.setInt(1, seq);
-			
-			rs = stmt.executeQuery();
-			if ( rs.next()) {
-				UserVO user = readUser(rs);
-				return user;
-			} else {
-				return null ;
-			}
-			
-		} catch (SQLException e) {
-			throw new DaoException("[error 5004] fail to read all users", e);
+			UserVO user = findBySeq(session, seq);
+			return user;
 		} finally {
-			config.release(conn, stmt, rs);
+			session.close();
 		}
 	}
 	
 	@Override
 	public UserVO findById(String userId) throws DaoException {
-		String sql = "SELECT seq, userid, nickname, email, password, when_joined FROM users WHERE userId =  ?";
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		conn = config.getConnection(false);
+		SqlSession session = config.getSqlSessionFactory().openSession(false);
+		
 		try {
-			stmt = conn.prepareStatement(sql);
-			stmt.setString(1, userId);
-			
-			rs = stmt.executeQuery();
-			if ( rs.next()) {
-				UserVO user = readUser(rs);
-				return user;
-			} else {
-				return null ;
-			}
-			
-		} catch (SQLException e) {
-			throw new DaoException("[error 5004] fail to read all users", e);
+			UserVO user = session.selectOne("User.findById", userId);
+			return user;
 		} finally {
-			config.release(conn, stmt, rs);
+			session.close();
 		}
 	}
 	
-	private int readPk( ResultSet rs) throws SQLException {
-		if ( rs.next()) {
-			return rs.getInt(1);
-		} else {
-			throw new DaoException("[error 5002] fail to read PK after inserting new User ");
-		}
-	}
 
 	@Override
 	public UserVO insert(UserVO newUser) throws DaoException {
 		// "moms", "맘이", "mom@naver.com", "mmmm"
-		String sql = "INSERT INTO users (userid, nickname, email, `password`) VALUES (?, ?, ?, ?)";
-		Connection conn= null;
-		PreparedStatement stmt = null;
+		SqlSession session = config.getSqlSessionFactory().openSession(false);
 		
 		try {
-			conn = config.getConnection(false);
-			stmt = conn.prepareStatement(sql);
-			stmt.setString(1, newUser.getUserId());
-			stmt.setString(2, newUser.getNickName());
-			stmt.setString(3, newUser.getEmail());
-			stmt.setString(4, newUser.getPassword());
-			
-			int cnt = stmt.executeUpdate();
-			
-			if ( cnt != 1 ){
-				throw new DaoException("[error 5003] fail to insert new user : " + newUser);
+			int insertCount = session.insert("User.newUser", newUser);
+			if ( insertCount != 1) {
+				throw new SQLException("insert count가 1이 아님 : " + insertCount);
 			}
-			int pk = readPk( stmt.getGeneratedKeys());
-//			newUser.setSeq(pk);
-			conn.commit();
-			return findBySeq(pk);
-		} catch (SQLException e) {
-			throw new DaoException ("[error 5001] fail to insert new user", e);
+			session.commit();
+			return findBySeq(session, newUser.getSeq());
+		} catch ( SQLException e) {
+			session.rollback();
+			throw new DaoException(e.getMessage(), e);
 		} finally {
-			config.release(conn, stmt, null);
+			session.close();
 		}
-		
 	}
 
 	@Override
@@ -177,30 +108,29 @@ public class UserDao implements IUserDao {
 	 * userid 와 password로 사용자 정보를 얻어냄.
 	 */
 	@Override
-	public UserVO findUser(String usernm, String pw) {
-		String sql = "SELECT seq, userid, nickname, email, password, when_joined FROM users WHERE userId =  ? and password = ?";
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		conn = config.getConnection(false);
+	public UserVO findUser(String id, String pw) {
+		UserVO user = null;
+		SqlSession session = config.getSqlSessionFactory().openSession(false);
+		
 		try {
-			stmt = conn.prepareStatement(sql);
-			stmt.setString(1, usernm);
-			stmt.setString(2, pw);
-			
-			rs = stmt.executeQuery();
-			if ( rs.next()) {
-				UserVO user = readUser(rs);
-				return user;
-			} else {
-				return null ;
-			}
-			
-		} catch (SQLException e) {
-			throw new DaoException("[error 5004] fail to read all users", e);
+			Map<String, String> params = new HashMap<String, String>();
+			params.put("id", id);
+			params.put("pass", pw);
+			user = session.selectOne("User.login", params);
+			return user;
 		} finally {
-			config.release(conn, stmt, rs);
+			session.close();
 		}
+	}
+
+	@Override
+	public String getName() {
+		return "userDao";
+	}
+
+	@Override
+	public IUserDao getDao() {
+		return this;
 	}
 
 }

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Posting">
+	<resultMap type="Posting" id="fullPostingMap">
+		<constructor>
+		<!-- Integer seq, 
+			String title, 
+			String content, 
+			Integer viewCount,
+			String whenCreated -->
+			<idArg javaType="integer" column="seq"/>
+			<arg javaType="string" column="title"/>
+			<arg javaType="string" column="content"/>
+			<arg javaType="integer" column="views"/>
+			<arg javaType="string" column="when_created"/>
+		</constructor>
+		<association property="writer" column="fk_writer" select="User.userBySeq"/>
+	</resultMap>
+	<select id="findAll" resultMap="fullPostingMap">
+		SELECT 
+			seq, 
+			title, 
+			content, 
+			views, 
+			when_created, 
+			fk_writer 
+		FROM postings
+	</select>
+	
+	<!-- pk(seq)값으로 찾음 -->
+	<select id="findBySeq" parameterType="int" resultMap="fullPostingMap">
+		SELECT 
+			seq,
+			title,
+			content,
+			views,
+			when_created,
+			fk_writer 
+		FROM postings WHERE seq = #{id}
+	</select>
+	
+	<!-- 새로운 글 삽입 -->
+	<!-- keyProperty : db에서 생성된 pk를 setting할 자바 필드 이름-->
+	<!-- keyColumn   : PostgreSQL 에서 필요함. 일단 넣어줌-->
+	<insert 
+		id="newPosting" 
+		parameterType="Posting" 
+		useGeneratedKeys="true" 
+		keyColumn="seq" 
+		keyProperty="seq" >
+	INSERT INTO postings (title, content, fk_writer) 
+	VALUES (#{title}, #{content}, #{writer.seq})
+	</insert>
+	
+	<update id="updateViewCount" parameterType="hashmap">
+		UPDATE postings SET views = #{viewCount} WHERE seq = #{postingId}
+	</update>
+</mapper>

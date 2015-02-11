@@ -1,21 +1,23 @@
 package ism.web.board.db.dao;
 
-import ism.web.board.db.DbConfig;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DaoRepository {
-	private IUserDao userDao;
-	private IPostingDao postingDao;
-	
-	public DaoRepository ( DbConfig config) {
-		userDao = new UserDao(config);
-		postingDao = new PostingDao(config);
+	private Map<String, IDao<?>> daoMap = new HashMap<String, IDao<?>>();
+	public DaoRepository () {
+		
 	}
 	
 	public IUserDao getUserDao() {
-		return userDao;
+		return (IUserDao) daoMap.get("userDao");
 	}
 	
 	public IPostingDao getPostingDao() {
-		return postingDao;
+		return (IPostingDao) daoMap.get("postingDao");
+	}
+
+	public <T extends IDao<?>> void registerDao(T dao) {
+		daoMap.put(dao.getName(), dao);
 	}
 }

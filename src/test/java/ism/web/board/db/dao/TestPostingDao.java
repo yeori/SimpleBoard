@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -30,24 +33,16 @@ public class TestPostingDao {
 	
 	@BeforeClass
 	public static void setUpClass() throws Exception {
-		InputStream is = TestUserDao.class.getClassLoader().getResourceAsStream("dbconn.properties");
-		assertNotNull ("fail to find dbconn.properties", is) ;
-		
-		Properties props = new Properties();
-		props.load(is);
-		
-		String url = props.getProperty("junit.demoboard.url");
-		String user = props.getProperty("junit.demoboard.user");
-		String password = props.getProperty("junit.demoboard.password");
-		
-		config = new DbConfig(url, user, password);
+		InputStream in = Resources.getResourceAsStream("mybatis-junit-config.xml");
+		SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
+		config = new DbConfig(null, factory);
 		
 	}
 	
 	@Before
 	public void setUp() throws Exception {
-		conn = config.getConnection(false);
-		helper.resetDB(config.getConnection(false), "junit-schema-simpleboard.sql", new MySqlQueryParser());
+		conn = config.getSqlSessionFactory().openSession(false).getConnection();
+		helper.resetDB(conn, "junit-schema-simpleboard.sql", new MySqlQueryParser());
 	}
 	
 	@After
@@ -58,7 +53,57 @@ public class TestPostingDao {
 	@Test
 	public void test_board_findAll() {
 		//IPostingDao dao = new PostingDao();
+		PostingDao dao = new PostingDao(config);
+		assertEquals(3, dao.findAll().size());
 		
+	}
+	
+	@Test
+	public void test_find_by_seq() {
+		PostingDao dao = new PostingDao(config);
+		
+		PostingVO posting = dao.findBySeq(2, false);
+		assertPostingFieldNotNull(posting);
+
+		UserVO writer = posting.getWriter();
+		TestUserDao.assertUserFieldNotNull(writer);
+		assertEquals("james", writer.getNickName()); 
+	}
+	
+	@Test
+	public void test_insert_new_posting() {
+		PostingDao dao = new PostingDao (config) ;
+		PostingVO newPosting = new PostingVO("demo", "good", james()); 
+		newPosting = dao.insert(newPosting);
+		assertPostingFieldNotNull(newPosting);
+		assertEquals ( 4, newPosting.getSeq().intValue());
+	}
+	
+	@Test
+	public void test_update_viewcount() {
+		int postingId = 2;
+		PostingDao dao = new PostingDao (config) ;
+		PostingVO posting = dao.findBySeq(postingId, true);
+		assertEquals (33, posting.getViewCount().intValue());
+		
+		posting = dao.findBySeq(postingId, false);
+		assertEquals ( 33, posting.getViewCount().intValue());
+		
+	}
+
+	private UserVO james() {
+		UserVO user = new UserVO();
+		user.setSeq(5000);
+		return user ;
+	}
+	
+	public static void assertPostingFieldNotNull(PostingVO posting) {
+		assertNotNull ("seq is null", posting.getSeq());
+		assertNotNull ("title is null", posting.getTitle());
+		assertNotNull ("content is null", posting.getContent());
+		assertNotNull ("whenCreated is null", posting.getWhenCreated());
+		assertNotNull ("view count is null", posting.getViewCount());
+		assertNotNull ("writer is null", posting.getWriter());		
 	}
 
 }

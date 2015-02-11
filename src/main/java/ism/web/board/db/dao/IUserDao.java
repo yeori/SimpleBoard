@@ -4,7 +4,7 @@ import ism.web.board.model.UserVO;
 
 import java.util.List;
 
-public interface IUserDao {
+public interface IUserDao extends IDao<IUserDao> {
 	public List<UserVO> findAll() throws DaoException;
 	/**
 	 * pk인 seq로 user를 조회함.

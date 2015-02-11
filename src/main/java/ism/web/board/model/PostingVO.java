@@ -4,7 +4,7 @@ public class PostingVO {
 	private Integer seq;
 	private String title;
 	private String content;
-	private int viewCount;
+	private Integer viewCount;
 	private String whenCreated;
 	private UserVO writer;
 	public Integer getSeq() {
@@ -25,10 +25,10 @@ public class PostingVO {
 	public void setContent(String content) {
 		this.content = content;
 	}
-	public int getViewCount() {
+	public Integer getViewCount() {
 		return viewCount;
 	}
-	public void setViewCount(int viewCount) {
+	public void setViewCount(Integer viewCount) {
 		this.viewCount = viewCount;
 	}
 	public String getWhenCreated() {
@@ -43,7 +43,15 @@ public class PostingVO {
 	public void setWriter(UserVO writer) {
 		this.writer = writer;
 	}
-	public PostingVO(Integer seq, String title, String content, int viewCount,
+	public PostingVO(Integer seq, String title, String content, Integer viewCount,
+			String whenCreated) {
+		this.seq = seq;
+		this.title = title;
+		this.content = content;
+		this.viewCount = viewCount;
+		this.whenCreated = whenCreated;
+	}
+	public PostingVO(Integer seq, String title, String content, Integer viewCount,
 			String whenCreated, UserVO writer) {
 		super();
 		this.seq = seq;
