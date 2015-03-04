@@ -35,10 +35,6 @@ public class TestMybatisInit {
 		// 2. querying
 		UserVO user = session.selectOne("User.userBySeq", 5001);
 		assertEquals ( "kongkong@gmail.com", user.getEmail());
-		System.out.println(user);
-		user = session.selectOne("User.userById", "happy");
-		assertEquals ( "happy", user.getNickName());
-		System.out.println(user);
 		
 		// 3. closing session
 		session.close();
