@@ -10,6 +10,9 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * 특정 글 조회 요청을 처리함.
  * 글 조회요청 uri는 다음과 같은 형식이어야함.
@@ -20,6 +23,8 @@ import javax.servlet.http.HttpServletResponse;
  * @see BoardUtil#isViewPostingPath(String)
  */
 public class ViewPosting implements IAction {
+	private Logger logger = LoggerFactory.getLogger(ViewPosting.class);
+	
 	@Override
 	public View process(BoardContext ctx, HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {

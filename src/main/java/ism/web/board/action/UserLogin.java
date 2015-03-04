@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** 로그인 처리 
  * 
@@ -22,7 +24,8 @@ import org.json.simple.JSONObject;
  *
  */
 public class UserLogin implements IAction {
-
+	private Logger logger = LoggerFactory.getLogger(UserLogin.class);
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public View process(BoardContext ctx, HttpServletRequest request,
@@ -31,14 +34,17 @@ public class UserLogin implements IAction {
 		String usernm = request.getParameter("user");
 		String pw = request.getParameter("password");
 		String targetUrl = getNextUrl (ctx, request); // .getParameter("target");
-		System.out.println("user="+usernm+"password="+pw + " and move to " + targetUrl);
+//		logger.debug("user="+usernm+"password="+pw + " and move to " + targetUrl);
+//		logger.debug("user[{}], password[{}] and move to [{}]", usernm, pw, targetUrl);
+		logger.debug(String.format("param : user[%s], password[%s] and NEXT[%s]",
+				usernm, pw, targetUrl) );
 		
 		UserVO user = dao.findUser( usernm, pw);
 		
 		View view = null;
 		JSONObject json = new JSONObject();
 		if ( user != null ) {
-			System.out.println(" 로그인 성공 : "); // FIXME 로그 관리 필요.
+			logger.debug(" 로그인 성공 : ");
 			HttpSession session = request.getSession();
 			session.setAttribute("user", user);
 			
@@ -65,6 +71,7 @@ public class UserLogin implements IAction {
 				url = URLDecoder.decode(url, "utf-8");
 			} catch (UnsupportedEncodingException e) {
 				// 발생할 일이 없음.
+				logger.error("strange error", e);
 				e.printStackTrace();
 			}
 		}

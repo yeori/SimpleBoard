@@ -20,6 +20,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Servlet implementation class FrontController
  */
@@ -32,7 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 */
 public class FrontController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
+    private Logger logger = LoggerFactory.getLogger(FrontController.class);
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -68,9 +71,9 @@ public class FrontController extends HttpServlet {
 	private void process(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		BoardContext bctx = (BoardContext) this.getServletContext().getAttribute("board.context");
-		System.out.println(request.getRequestURI() + " : psize " + bctx.getPageSize());		
+		logger.debug(request.getRequestURI() + " : psize " + bctx.getPageSize());		
 		String path = parsePath(request);
-		System.out.println("Path : " + path);
+		logger.debug("Path : " + path);
 		
 		BoardContext boardCtx  = (BoardContext) request.getServletContext().getAttribute("board.context");
 		
@@ -107,15 +110,15 @@ public class FrontController extends HttpServlet {
 		}
 		
 		if ( view != null) {
-			System.out.println("next page : " + view.getPath() + " AS " + 
-					( view.isForward() ? "forwarding" : "redirection") );
+			logger.debug("next page : {} AS " + 
+					( view.isForward() ? "forwarding" : "redirection"), view.getPath() );
 			if ( view.isForward()) {
 				request.getRequestDispatcher(view.getPath()).forward(request, response);
 			} else {
 				response.sendRedirect(view.getPath());
 			}
 		} else {
-			System.out.println("Unknown path : " + path);
+			logger.warn("Unknown path : {}", path);
 		}
 		
 //		request.getRequestDispatcher(path).forward(request, response);

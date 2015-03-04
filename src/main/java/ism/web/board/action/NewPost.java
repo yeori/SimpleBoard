@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * 새글을 db에 입력함.
  * 
@@ -19,6 +21,8 @@ import org.json.simple.JSONObject;
  *
  */
 public class NewPost implements IAction {
+	private Logger logger = LoggerFactory.getLogger(NewPost.class);
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public View process(BoardContext ctx, HttpServletRequest request,
@@ -38,8 +42,9 @@ public class NewPost implements IAction {
 		String title = request.getParameter("title");
 		String content = request.getParameter("content");
 		
-		System.out.println("title : " + title);
-		System.out.println("content : " + content);
+		logger.debug(String.format("title : %s, content : [%s](size:%d)",
+				title, content.substring(0, 40)+"...", content.length()));
+
 		PostingVO newPosting = new PostingVO(title, content, writer);
 		IPostingDao dao = ctx.getDaoRepository().getPostingDao();
 		newPosting = dao.insert(newPosting);
