@@ -7,6 +7,7 @@
 <title>${posting.title }</title>
 </head>
 <body>
+<jsp:include page="/WEB-INF/jsp/include/header.jsp"></jsp:include>
 <div><span id="title">${posting.title }</span> 조회수 <span>${posting.viewCount }</span></div>
 <div><span id="content">${posting.content}</span></div>
 

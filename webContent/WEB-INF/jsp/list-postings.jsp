@@ -9,6 +9,7 @@
 <title>Insert title here</title>
 </head>
 <body>
+<jsp:include page="/WEB-INF/jsp/include/header.jsp"></jsp:include>
 <%
 	List<PostingVO> posting = (List<PostingVO>) request.getAttribute("postings");
 %>
