@@ -59,7 +59,7 @@ public class UserLogin implements IAction {
 	private String getNextUrl(BoardContext ctx, HttpServletRequest request) {
 		String url = request.getParameter("target");
 		if ( url == null || url.trim().length() == 0 ) {
-			url = ctx.getServletContextPath();
+			url = "";
 		} else {
 			try {
 				url = URLDecoder.decode(url, "utf-8");
