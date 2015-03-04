@@ -5,14 +5,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
 </head>
 <body>
-<%
-	UserVO user = (UserVO) session.getAttribute("user");
-	if ( user != null) {
-%>
-<H2><%= user.getNickName() %> 님!!</H2>
-<%
-	}
-%>
+<jsp:include page="WEB-INF/jsp/include/header.jsp"></jsp:include>
 <h2>잘 나오냐?</h2>
 </body>
 </html>
