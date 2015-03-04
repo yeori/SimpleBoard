@@ -15,6 +15,9 @@ import javax.servlet.annotation.WebInitParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Servlet Filter implementation class GatewayFilter
  */
@@ -28,7 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 		})
 */
 public class GatewayFilter implements Filter {
-
+	private Logger logger = LoggerFactory.getLogger(GatewayFilter.class);
     private FilterConfig fConfig;
 
 	/**
@@ -49,8 +52,6 @@ public class GatewayFilter implements Filter {
 	 * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
 	 */
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		// TODO Auto-generated method stub
-		// place your code here
 
 		// pass the request along the filter chain
 		HttpServletRequest req = ( HttpServletRequest) request;
@@ -65,13 +66,18 @@ public class GatewayFilter implements Filter {
 			// TODO 요청 url이 '/' 로 끝나는 경우 제거해줘야 하는데
 			//      메인 페이지 요청( http://url.com/ ) 인 경우는 제거하면 안됨.
 			path = path.substring(0, path.length()-1);
-			System.out.println("stripped '/' : " + path);
+			logger.debug("stripped '/' : " + path);
 		}
 		
-		System.out.println("path [" + path + "]");
-		if ( path.equals("") || path.startsWith("/static") || path.endsWith(".jsp") || path.endsWith(".html") ) {
+		logger.debug("path[" + path + "]");
+		if ( path.equals("") || 
+				path.startsWith("/static") 
+				|| path.endsWith(".jsp") 
+				|| path.endsWith(".html") ) {
+			logger.debug("static  resources[{}]", path);
 			chain.doFilter(request, response);
 		} else {
+			logger.debug("servlet resources[{}]", path);
 			req.getRequestDispatcher("/ctrl" + path ).forward(req, res);
 			
 		}
@@ -81,7 +87,6 @@ public class GatewayFilter implements Filter {
 	 * @see Filter#init(FilterConfig)
 	 */
 	public void init(FilterConfig fConfig) throws ServletException {
-		// TODO Auto-generated method stub
 		this.fConfig = fConfig;
 		fConfig.getServletContext();
 		

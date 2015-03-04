@@ -18,6 +18,8 @@ import javax.servlet.annotation.WebListener;
 
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Application Lifecycle Listener implementation class BoardInitiater
@@ -25,7 +27,7 @@ import org.apache.ibatis.session.SqlSessionFactoryBuilder;
  */
 @WebListener
 public class BoardInitiater implements ServletContextListener {
-	
+	private Logger logger = LoggerFactory.getLogger(BoardInitiater.class);
 	
     /**
      * Default constructor. 
@@ -39,6 +41,7 @@ public class BoardInitiater implements ServletContextListener {
      */
     public void contextInitialized(ServletContextEvent sce) {
     	ServletContext ctx = sce.getServletContext();
+    	logger.info("게시판 웹 애플리케이션 준비");
     	try {
     		SqlSessionFactory factory = initMybatisSessionFactory(ctx);
     		DaoRepository repository = initDaoRepository(ctx);
@@ -51,6 +54,8 @@ public class BoardInitiater implements ServletContextListener {
 		} catch (BoardException e) {
 			throw e; // throw new RuntimeException("fail to init db configration.", e);
 		}
+    	
+    	logger.info("게시판 웹 에플리케이션 준비 완료");
     }
     
     /**

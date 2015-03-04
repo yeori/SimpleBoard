@@ -15,6 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * 새로운 회원 가입 요청을 처리하는 액션
  * 
@@ -24,6 +26,7 @@ import org.json.simple.JSONObject;
  *
  */
 public class JoinAction implements IAction {
+	private Logger logger = LoggerFactory.getLogger(JoinAction.class);
 	private final String jsonPage = "/WEB-INF/jsp/json/json-response.jsp";
 	
 	@SuppressWarnings("unchecked")
@@ -33,7 +36,9 @@ public class JoinAction implements IAction {
 		String id = request.getParameter("userid");
 		String password = request.getParameter("password");
 		String email = request.getParameter("email");
-
+		logger.debug(String.format("id[%s], pass[%s], email[%s]",
+				id, password, email));
+		
 		JSONObject json = new JSONObject();
 		// COMMENT parameter 들을 검증하는
 		// 지루한 작업들을 다른데로 몰아넣는게 좋음.
@@ -83,7 +88,9 @@ public class JoinAction implements IAction {
 		json.put("success", false);
 		json.put("cause", error);
 		
-		request.setAttribute("json", json.toJSONString());
+		String jsonStr = json.toJSONString();
+		logger.info(String.format("[JSON]invalid join form : %s", jsonStr));
+		request.setAttribute("json", jsonStr);
 		return Views.FORWARD("/WEB-INF/jsp/json/json-response.jsp");
 	}
 

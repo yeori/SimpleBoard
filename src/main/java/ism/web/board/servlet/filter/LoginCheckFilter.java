@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Servlet Filter implementation class LoginCheckFilter
@@ -29,7 +31,7 @@ import org.json.simple.JSONObject;
 //				@WebInitParam(name = "key", value = "value", description = "test params")
 //		})
 public class LoginCheckFilter implements Filter {
-
+	private Logger logger = LoggerFactory.getLogger(LoginCheckFilter.class);
     private ServletContext ctx;
 
 	/**
@@ -61,8 +63,8 @@ public class LoginCheckFilter implements Filter {
 		if ( user == null ) {
 		// 로그인하지 않고 접근한 경우
 			String path  = parsePath(req);
-			System.out.println(path);
 			if ( isJsonRequest(path)) {
+				logger.debug("login check for [{}] response(json)", path);
 				// 비동기 방식의 요청인 경우 json 응답
 				JSONObject json = new JSONObject();
 				createLoginRequiredResponse(json);
@@ -71,6 +73,7 @@ public class LoginCheckFilter implements Filter {
 				req.getRequestDispatcher(view.getPath()).forward(req, res);
 			} else {
 				// 동기 방식의 요청인 경우는 redirect
+				logger.debug("login check for[{}] response(normal)", path);
 				view = moveToLoginPage(req, res);
 				res.sendRedirect(view.getPath());
 			}
@@ -100,7 +103,6 @@ public class LoginCheckFilter implements Filter {
 	
 	private String parsePath ( HttpServletRequest request )  {
 		String ctxpath = ctx.getContextPath();
-		System.out.println("ctxpath :"  + ctxpath); 
 		String uri = request.getRequestURI();
 		String path = uri.substring(ctxpath.length());
 		
@@ -127,7 +129,7 @@ public class LoginCheckFilter implements Filter {
 		urlToGo = URLEncoder.encode(urlToGo, "UTF-8");
 		
 		String login = "/SimpleBoard/login" + "?target=" + urlToGo;
-		System.out.println("[LOGIN-REQUIRED]" + login);
+		logger.debug("[LOGIN-REQUIRED]" + login);
 //		response.sendRedirect(login);
 		return Views.REDIRECT(login);
 	}
