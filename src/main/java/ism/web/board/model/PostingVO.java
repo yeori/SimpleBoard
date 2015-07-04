@@ -7,6 +7,8 @@ public class PostingVO {
 	private int viewCount;
 	private String whenCreated;
 	private UserVO writer;
+	
+	public PostingVO() {} // for hibernate
 	public Integer getSeq() {
 		return seq;
 	}

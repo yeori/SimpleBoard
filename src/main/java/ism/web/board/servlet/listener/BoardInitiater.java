@@ -13,6 +13,9 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
 /**
  * Application Lifecycle Listener implementation class BoardInitiater
  *
@@ -35,6 +38,7 @@ public class BoardInitiater implements ServletContextListener {
     	ServletContext ctx = sce.getServletContext();
     	try {
 			DbConfig dbConfig = initDBConfig(ctx);
+			
 			BoardContext boardConfig = new BoardContext(dbConfig, ctx);
 			ctx.setAttribute("board.context", boardConfig);
 			
@@ -43,7 +47,14 @@ public class BoardInitiater implements ServletContextListener {
 		}
     }
     
-    /**
+    private void installHibernateSessionFactory(DbConfig dbConfig) {
+    	SessionFactory factory = new Configuration().configure().buildSessionFactory();
+    	System.out.println("@@@@@@@@@@@@@@@@ " + factory);
+		dbConfig.setHbmFactory(factory);
+	}
+
+
+	/**
      * @see ServletContextListener#contextDestroyed(ServletContextEvent)
      */
     public void contextDestroyed(ServletContextEvent sce) {
@@ -62,6 +73,9 @@ public class BoardInitiater implements ServletContextListener {
 			String password = props.getProperty("deploy.demoboard.password");
 			
 			DbConfig config = new DbConfig(url, user, password);
+			installHibernateSessionFactory ( config );
+			config.initDaoRepository();
+			
 			return config;
 		} catch (Exception e) {
 			throw new BoardException("fail to init db configrations. check the file " + dbconn_filepath, e);

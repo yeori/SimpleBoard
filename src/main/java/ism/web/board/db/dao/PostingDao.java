@@ -11,11 +11,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+
 public class PostingDao implements IPostingDao {
 	private DbConfig config;
-	
+	private SessionFactory sessionFactory;
 	public PostingDao ( DbConfig config) {
 		this.config = config;
+		sessionFactory = config.getHbmFactory();
 	}
 	
 	private int getPk( ResultSet rs) throws SQLException {
@@ -29,28 +34,15 @@ public class PostingDao implements IPostingDao {
 	
 	@Override
 	public PostingVO findBySeq( int seq) throws DaoException {
-		String query = "SELECT seq, title, content, views, when_created, fk_writer FROM postings WHERE seq = ?";
-		Connection conn = null;
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
+		Session session = sessionFactory.openSession();
+		Query query = session.createQuery("FROM PostingVO where seq = :seq");
+		query.setInteger("seq", seq);
+		PostingVO posting = (PostingVO) query.uniqueResult();
 		
-		try {
-			conn = config.getConnection(false);
-			stmt = conn.prepareStatement(query);
-			stmt.setInt(1, seq);
-			rs = stmt.executeQuery();
-		
-			PostingVO posting = null;
-			if ( rs.next()) {
-				posting = asPosting(rs);
-			}
-			return posting;
-		} catch (SQLException e) {
-			throw new DaoException("[error 4000] fail to read all postings", e);
-		} finally {
-			config.release(conn, stmt, rs);
-		}
+		session.close();
+		return posting;
 	}
+	
 	@Override
 	public PostingVO insert(PostingVO posting) throws DaoException {
 		String query = "INSERT INTO postings (title, content, fk_writer) VALUES (?, ?, ?)";

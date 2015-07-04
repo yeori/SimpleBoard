@@ -8,6 +8,8 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.util.Properties;
 
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -41,7 +43,12 @@ public class TestUserDao {
 		String user = p.getProperty("junit.demoboard.user");
 		String password = p.getProperty("junit.demoboard.password");
 		
+		
 		config = new DbConfig(url, user, password);
+		
+		SessionFactory hbmFactory = new Configuration().configure("junit-hbm.cfg.xml").buildSessionFactory();
+		config.setHbmFactory(hbmFactory);
+		
 		
 	}
 
@@ -61,6 +68,14 @@ public class TestUserDao {
 		IUserDao userDao = new UserDao(config);
 		assertEquals ( 2, userDao.findAll().size());
 		
+	}
+	
+	@Test
+	public void test_find_by_seq() {
+		IUserDao userDao = new UserDao(config);
+		UserVO user = null;
+		user = userDao.findBySeq(5001);
+		assertEquals ( "김꽁꽁",user.getNickName());
 	}
 	
 	@Test
@@ -91,6 +106,26 @@ public class TestUserDao {
 		user = userDao.insert(user);
 		assertEquals ( 3, userDao.findAll().size());
 		assertEquals ( 5002, user.getSeq().intValue());
+	}
+	
+	@Test
+	public void test_update_user() {
+		IUserDao userDao = new UserDao(config);
+		UserVO james = userDao.findBySeq(5000); // james
+		james.setEmail("hahaha@naver.com");
+//		userDao.update(james);
+		
+		UserVO afterUpdate = userDao.findBySeq(5000);
+		assertEquals ( "hahaha@naver.com", afterUpdate.getEmail());
+	}
+	@Test
+	public void test_delete() {
+		IUserDao userDao = new UserDao(config);
+		UserVO james = userDao.findBySeq(5000); // james
+		userDao.delete(james);
+		
+		UserVO deleted = userDao.findBySeq(5000);
+		assertNull(deleted);
 	}
 
 	public static void assertUserFieldNotNull(UserVO user) {

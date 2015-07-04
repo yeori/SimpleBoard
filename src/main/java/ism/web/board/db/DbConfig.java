@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.apache.commons.dbcp.BasicDataSource;
+import org.hibernate.SessionFactory;
 
 public class DbConfig {
 	private String url;
@@ -19,6 +20,7 @@ public class DbConfig {
 	private BasicDataSource ds = new BasicDataSource();
 	
 	private DaoRepository daoReop ;
+	private SessionFactory hbmFactory ;
 	public DbConfig(String url, String user, String password) {
 		this.url = url;
 		this.user = user;
@@ -34,11 +36,23 @@ public class DbConfig {
 		ds.setInitialSize(10);
 		ds.setDriverClassName("org.mariadb.jdbc.Driver");
 		
-		initDaoRepository();
+//		initDaoRepository();
 		
 	}
 	
-	private void initDaoRepository() {
+	
+	
+	public SessionFactory getHbmFactory() {
+		return hbmFactory;
+	}
+
+	public void setHbmFactory(SessionFactory hbmFactory) {
+		this.hbmFactory = hbmFactory;
+	}
+
+
+
+	public void initDaoRepository() {
 		this.daoReop = new DaoRepository(this);
 	}
 	

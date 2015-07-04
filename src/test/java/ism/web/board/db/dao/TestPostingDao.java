@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -42,6 +45,8 @@ public class TestPostingDao {
 		
 		config = new DbConfig(url, user, password);
 		
+		SessionFactory hbmFactory = new Configuration().configure("junit-hbm.cfg.xml").buildSessionFactory();
+		config.setHbmFactory(hbmFactory);
 	}
 	
 	@Before
@@ -55,6 +60,27 @@ public class TestPostingDao {
 		config.release(conn, null, null);
 	}
 
+	@Test
+	public void test_findBySeq() {
+		PostingDao dao = new PostingDao(config);
+		PostingVO second = dao.findBySeq(2);
+		assertEquals ( 32, second.getViewCount());
+	}
+	
+	@Test
+	public void test_getwriter() {
+		PostingDao dao = new PostingDao(config);
+		PostingVO second = dao.findBySeq(2);
+		assertNotNull ( second.getWriter());
+		
+		UserVO proxyUser = second.getWriter();
+//		Session session = config.getHbmFactory().openSession();
+//		session.update(proxyUser);
+	//		session.persist(proxyUser); // 
+			assertEquals ("james@naver.com", proxyUser.getEmail());
+		
+//		session.close();
+	}
 	@Test
 	public void test_board_findAll() {
 		//IPostingDao dao = new PostingDao();
