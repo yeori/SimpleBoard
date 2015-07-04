@@ -4,14 +4,17 @@ import static org.junit.Assert.*;
 import ism.web.board.db.DbConfig;
 import ism.web.board.model.PostingVO;
 import ism.web.board.model.UserVO;
+import ism.web.board.util.HibernateUtil;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Properties;
 
-import org.apache.ibatis.io.Resources;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.jdbc.Work;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -29,16 +32,29 @@ public class TestPostingVO {
 	
 	@BeforeClass
 	public static void setUpClass() throws Exception {
-		InputStream in = Resources.getResourceAsStream("mybatis-junit-config.xml");
-		SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
+		String path = "junit-hibernate.cfg.xml";
+		SessionFactory factory = HibernateUtil.getSessionFactory(path);
 		config = new DbConfig(null, factory);
 		dao = new PostingDao(config);
 	}
 
 	@Before
 	public void setUp() throws Exception {
-		conn = config.getSqlSessionFactory().openSession().getConnection();
-		helper.resetDB(conn, "junit-schema-simpleboard.sql", new MySqlQueryParser());
+		Session session = config.getSqlSessionFactory().openSession();
+		
+		session.doWork(new Work() {
+			
+			@Override
+			public void execute(Connection connection) throws SQLException {
+				try {
+					helper.resetDB(connection, 
+							"junit-schema-simpleboard.sql", 
+							new MySqlQueryParser());
+				} catch (IOException e) {
+					throw new SQLException("fail to test case for junit", e);
+				}
+			}
+		});
 	}
 	
 	@After

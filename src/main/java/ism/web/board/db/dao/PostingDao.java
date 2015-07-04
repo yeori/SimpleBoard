@@ -8,13 +8,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ibatis.session.SqlSession;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
 public class PostingDao implements IPostingDao {
 	private DbConfig config;
-	
+	private SessionFactory factory ;
 	public PostingDao ( DbConfig config) {
 		this.config = config;
+		factory = config.getSqlSessionFactory();
 	}
 	
 	/**
@@ -26,45 +30,42 @@ public class PostingDao implements IPostingDao {
 	@Override
 	public PostingVO findBySeq( int seq, boolean updateViewCount) throws DaoException {
 		
-		SqlSession session = config.getSqlSessionFactory().openSession(false);
-		PostingVO posting = null;
+		Session session = factory.openSession();
 		
 		try {
-			posting = findBySeq(session, seq);
-			if ( updateViewCount) {
-				Integer newViewCnt = posting.getViewCount() + 1;
-				updateViewCount(session, seq, newViewCnt);
-				posting.setViewCount(newViewCnt);
-			}
-			session.commit();
+			Transaction tx = session.beginTransaction();
+			Query query = session.createQuery("from PostingVO where seq = :seq" );
+			query.setParameter("seq", seq);
+			PostingVO posting = (PostingVO) query.uniqueResult();
+			posting.setViewCount(posting.getViewCount()+1);
+			session.save(posting);
+			
+			// to prevent error "could not iniitialize proxy - no Session"
+			session.update(posting.getWriter());
+			
+			tx.commit();
 			return posting;
-		} catch ( SQLException e) {
-			throw new DaoException(e.getMessage(), e);
 		} finally {
 			session.close();
 		}
 	}
 	
 
-	PostingVO findBySeq (SqlSession session, int seq) {
-		PostingVO posting = null;
-		
-		posting = session.selectOne("Posting.findBySeq", seq);
-		return posting;
-	}
+//	PostingVO findBySeq (Session session, int seq) {
+//		PostingVO posting = null;
+//		
+//		posting = session.selectOne("Posting.findBySeq", seq);
+//		return posting;
+//	}
 	
 	@Override
 	public PostingVO insert(PostingVO posting) throws DaoException {
-		SqlSession session = config.getSqlSessionFactory().openSession(false);
+		Session session = factory.openSession();
+		Transaction tx = session.beginTransaction();
 		try {
-			int insertCount = session.insert("Posting.newPosting", posting);
-			if ( insertCount != 1) {
-				throw new SQLException("새글 삽입 실패 : " + posting);
-			}
-			session.commit();
-			return findBySeq( session, posting.getSeq());
-		} catch (SQLException e) {
-			throw new DaoException(e.getMessage(), e);
+			session.save(posting);
+			tx.commit();
+			return posting;
 		} finally {
 			session.close();
 		}
@@ -72,36 +73,48 @@ public class PostingDao implements IPostingDao {
 
 	@Override
 	public List<PostingVO> findAll() throws DaoException {
-		SqlSession session = config.getSqlSessionFactory().openSession(false);
+		Session session = factory.openSession();
 		try {
-			return session.selectList("Posting.findAll");
+			Transaction tx = session.beginTransaction();
+			
+			Query q = session.createQuery("from PostingVO");
+			List<PostingVO> postings = q.list();
+			for (int i = 0; i < postings.size(); i++) {
+				postings.get(i).getWriter().getEmail();
+			}
+			tx.commit();
+			return postings;
 		} finally {
 			session.close();
 		}
 	}
 	
-	void updateViewCount(SqlSession session, int seq, int viewCount) throws SQLException {
-		Map<String, Integer> params = new HashMap<String, Integer>();
-		params.put("postingId", seq);
-		params.put("viewCount", viewCount);
-		int updateCount = session.update("Posting.updateViewCount", params);
-		
-		if ( updateCount != 1) {
-			throw new SQLException("조회수 갱신 실패 : posting[" + seq + "] count[" + viewCount + "]");
-		}
-		
-	}
+//	void updateViewCount(Session session, int seq, int viewCount) {
+//		Map<String, Integer> params = new HashMap<String, Integer>();
+//		params.put("postingId", seq);
+//		params.put("viewCount", viewCount);
+//	
+////		int updateCount = session.update("Posting.updateViewCount", params);
+//		session.createQuery("from PostingVO where seq = ")
+//		
+//		if ( updateCount != 1) {
+//			throw new SQLException("조회수 갱신 실패 : posting[" + seq + "] count[" + viewCount + "]");
+//		}
+//		
+//	}
 	@Override
 	public boolean updateViewCount(int seq, int viewCount) {
-		SqlSession session = config.getSqlSessionFactory().openSession(false);
+		Session session = factory.openSession();
 		
 		try {
-			updateViewCount(session, seq, viewCount);
-			session.commit();
-			return true;
-		} catch ( SQLException e) {
-			session.rollback();
-			throw new DaoException(e.getMessage(), e);
+			Query q = session.createQuery("update PostingVO" +
+					" set viewCount = :vc" +
+					" where seq = :seq");
+			q.setParameter("vc", viewCount);
+			q.setParameter("seq", seq);
+			
+//			updateViewCount(session, seq, viewCount);
+			return q.executeUpdate() == 1 ;
 		} finally {
 			session.close();
 		}

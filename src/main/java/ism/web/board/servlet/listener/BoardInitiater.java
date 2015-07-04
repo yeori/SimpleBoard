@@ -6,6 +6,7 @@ import ism.web.board.db.DbConfig;
 import ism.web.board.db.dao.DaoRepository;
 import ism.web.board.db.dao.PostingDao;
 import ism.web.board.db.dao.UserDao;
+import ism.web.board.util.HibernateUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,8 +17,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.hibernate.SessionBuilder;
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +44,10 @@ public class BoardInitiater implements ServletContextListener {
     	ServletContext ctx = sce.getServletContext();
     	logger.info("게시판 웹 애플리케이션 준비");
     	try {
-    		SqlSessionFactory factory = initMybatisSessionFactory(ctx);
+//    		SqlSessionFactory factory = initMybatisSessionFactory(ctx);
+    		SessionFactory hbmSessionFactory = HibernateUtil.getSessionFactory();
     		DaoRepository repository = initDaoRepository(ctx);
-    		DbConfig dbConfig = initDBConfig(repository, factory, ctx);
+    		DbConfig dbConfig = initDBConfig(repository, hbmSessionFactory, ctx);
     		registerDaos(dbConfig, repository);
     		
 			BoardContext boardConfig = new BoardContext(dbConfig, ctx);
@@ -65,12 +67,12 @@ public class BoardInitiater implements ServletContextListener {
         // TODO Auto-generated method stub
     }
     
-    private SqlSessionFactory initMybatisSessionFactory(ServletContext ctx) {
-    	ClassLoader cl = this.getClass().getClassLoader();
-    	InputStream in = cl.getResourceAsStream("mybatis-config.xml");
-    	SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
-    	return factory;
-    }
+//    private SqlSessionFactory initMybatisSessionFactory(ServletContext ctx) {
+//    	ClassLoader cl = this.getClass().getClassLoader();
+//    	InputStream in = cl.getResourceAsStream("mybatis-config.xml");
+//    	SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
+//    	return factory;
+//    }
     
     private DaoRepository initDaoRepository(ServletContext ctx) {
     	DaoRepository repo = new DaoRepository();
@@ -80,17 +82,15 @@ public class BoardInitiater implements ServletContextListener {
     	return repo;
     }
 
-    private DbConfig initDBConfig(DaoRepository repo, SqlSessionFactory factory, ServletContext ctx) throws BoardException {
+    private DbConfig initDBConfig(
+    		DaoRepository repo, 
+    		SessionFactory factory, ServletContext ctx) throws BoardException {
     	String dbconn_filepath = ctx.getInitParameter("file.dbconfig");
     	InputStream in = this.getClass().getClassLoader().getResourceAsStream(dbconn_filepath);
     	
     	Properties props = new Properties();
 		try {
 			props.load(in);
-//			String url = props.getProperty("deploy.demoboard.url");
-//			String user = props.getProperty("deploy.demoboard.user");
-//			String password = props.getProperty("deploy.demoboard.password");
-//			
 			DbConfig config = new DbConfig(repo, factory);
 			return config;
 		} catch (Exception e) {

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="ism.web.board.model.PostingVO" table="postings" catalog="">
+        <id name="seq" type="java.lang.Integer">
+            <column name="seq" />
+            <generator class="identity" />
+        </id>
+        
+        <property name="title" type="string" column="title"></property>
+        <property name="content" type="string" column="content"></property>
+        <property name="viewCount" type="integer" column="views"></property>
+        <property name="whenCreated" type="string" column="when_created" ></property>
+        <many-to-one name="writer" 
+        	column="fk_writer" 
+        	class="ism.web.board.model.UserVO" 
+        	not-null="true"
+        	>
+        </many-to-one>
+    </class>
+</hibernate-mapping>

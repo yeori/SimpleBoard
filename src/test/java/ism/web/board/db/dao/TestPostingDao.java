@@ -4,19 +4,17 @@ import static org.junit.Assert.*;
 import ism.web.board.db.DbConfig;
 import ism.web.board.model.PostingVO;
 import ism.web.board.model.UserVO;
+import ism.web.board.util.HibernateUtil;
 
-import java.io.InputStream;
+import java.io.IOException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
-import org.apache.ibatis.io.Resources;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.jdbc.Work;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -30,19 +28,36 @@ public class TestPostingDao {
 	static DbTestHelper helper = new DbTestHelper();
 	
 	Connection conn = null;
+	private static SessionFactory factory;
 	
 	@BeforeClass
 	public static void setUpClass() throws Exception {
-		InputStream in = Resources.getResourceAsStream("mybatis-junit-config.xml");
-		SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(in);
+		String path = "junit-hibernate.cfg.xml";
+		factory = HibernateUtil.getSessionFactory(path);
+		
 		config = new DbConfig(null, factory);
 		
 	}
 	
 	@Before
 	public void setUp() throws Exception {
-		conn = config.getSqlSessionFactory().openSession(false).getConnection();
-		helper.resetDB(conn, "junit-schema-simpleboard.sql", new MySqlQueryParser());
+		Session session = config.getSqlSessionFactory().openSession();
+		
+		conn = null;
+		session.doWork(new Work() {
+			
+			@Override
+			public void execute(Connection connection) throws SQLException {
+				try {
+					helper.resetDB(connection, 
+							"junit-schema-simpleboard.sql", 
+							new MySqlQueryParser());
+					connection.commit();
+				} catch (IOException e) {
+					throw new SQLException("fail to test case for junit", e);
+				}
+			}
+		});
 	}
 	
 	@After
@@ -54,8 +69,10 @@ public class TestPostingDao {
 	public void test_board_findAll() {
 		//IPostingDao dao = new PostingDao();
 		PostingDao dao = new PostingDao(config);
-		assertEquals(3, dao.findAll().size());
 		
+		List<PostingVO> postings = dao.findAll();
+		assertEquals(3, postings.size());
+		assertEquals(5000, postings.get(0).getWriter().getSeq().intValue());
 	}
 	
 	@Test
@@ -75,8 +92,9 @@ public class TestPostingDao {
 		PostingDao dao = new PostingDao (config) ;
 		PostingVO newPosting = new PostingVO("demo", "good", james()); 
 		newPosting = dao.insert(newPosting);
-		assertPostingFieldNotNull(newPosting);
-		assertEquals ( 4, newPosting.getSeq().intValue());
+		PostingVO p = dao.findBySeq(newPosting.getSeq(), false);
+		assertPostingFieldNotNull(p);
+		assertEquals ( 4, p.getSeq().intValue());
 	}
 	
 	@Test
@@ -86,8 +104,8 @@ public class TestPostingDao {
 		PostingVO posting = dao.findBySeq(postingId, true);
 		assertEquals (33, posting.getViewCount().intValue());
 		
-		posting = dao.findBySeq(postingId, false);
-		assertEquals ( 33, posting.getViewCount().intValue());
+		PostingVO posting2 = dao.findBySeq(postingId, false);
+		assertEquals ( 33, posting2.getViewCount().intValue());
 		
 	}
 

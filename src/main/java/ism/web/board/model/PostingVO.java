@@ -1,5 +1,7 @@
 package ism.web.board.model;
 
+import java.sql.Timestamp;
+
 public class PostingVO {
 	private Integer seq;
 	private String title;
@@ -7,6 +9,7 @@ public class PostingVO {
 	private Integer viewCount;
 	private String whenCreated;
 	private UserVO writer;
+	public PostingVO(){}
 	public Integer getSeq() {
 		return seq;
 	}
@@ -36,6 +39,9 @@ public class PostingVO {
 	}
 	public void setWhenCreated(String whenCreated) {
 		this.whenCreated = whenCreated;
+	}
+	public void setWhenCreated(Timestamp t) {
+		this.whenCreated = t.toString();
 	}
 	public UserVO getWriter() {
 		return writer;

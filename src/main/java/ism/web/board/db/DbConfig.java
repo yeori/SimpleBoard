@@ -4,21 +4,19 @@ import ism.web.board.BoardException;
 import ism.web.board.db.dao.DaoRepository;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.ibatis.session.SqlSessionFactory;
+import org.hibernate.SessionFactory;
 
 public class DbConfig {
 	
 	private DaoRepository daoReop ;
 	
-	private SqlSessionFactory factory ;
+	private SessionFactory factory ;
 	
-	public DbConfig(DaoRepository repo, SqlSessionFactory factory) {
+	public DbConfig(DaoRepository repo, SessionFactory factory) {
 		this.daoReop = repo;
 		this.factory = factory;
 	}
@@ -27,7 +25,7 @@ public class DbConfig {
 		return daoReop;
 	}
 	
-	public SqlSessionFactory getSqlSessionFactory() {
+	public SessionFactory getSqlSessionFactory() {
 		return factory;
 	}
 	
