@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.LazyInitializationException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -37,9 +38,10 @@ public class PostingDao implements IPostingDao {
 		Session session = sessionFactory.openSession();
 		Query query = session.createQuery("FROM PostingVO where seq = :seq");
 		query.setInteger("seq", seq);
-		PostingVO posting = (PostingVO) query.uniqueResult();
+		final PostingVO posting = (PostingVO) query.uniqueResult();
 		
 		session.close();
+			
 		return posting;
 	}
 	

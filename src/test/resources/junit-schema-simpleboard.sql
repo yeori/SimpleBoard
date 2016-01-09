@@ -1,16 +1,37 @@
 -- --------------------------------------------------------
 -- 호스트:                          127.0.0.1
--- 서버 버전:                        5.5.5-10.0.10-MariaDB - mariadb.org binary distribution
+-- 서버 버전:                        10.0.17-MariaDB - mariadb.org binary distribution
 -- 서버 OS:                        Win32
--- HeidiSQL 버전:                  8.3.0.4694
+-- HeidiSQL 버전:                  9.1.0.4867
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES utf8mb4 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
--- 테이블 demoboard의 구조를 덤프합니다. postings
+-- 테이블 test_demoboard의 구조를 덤프합니다. mn_posting_tag
+DROP TABLE IF EXISTS `mn_posting_tag`;
+CREATE TABLE IF NOT EXISTS `mn_posting_tag` (
+  `posting` int(10) unsigned NOT NULL,
+  `tag` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`posting`,`tag`),
+  KEY `FK_tags_seq` (`tag`),
+  CONSTRAINT `FK_postings_seq` FOREIGN KEY (`posting`) REFERENCES `postings` (`seq`) ON DELETE CASCADE,
+  CONSTRAINT `FK_tags_seq` FOREIGN KEY (`tag`) REFERENCES `tags` (`seq`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='postings와 tags를 연결하는 테이블';
+
+-- Dumping data for table test_demoboard.mn_posting_tag: ~0 rows (대략적)
+DELETE FROM `mn_posting_tag`;
+/*!40000 ALTER TABLE `mn_posting_tag` DISABLE KEYS */;
+INSERT INTO `mn_posting_tag` (`posting`, `tag`) VALUES
+	(1, 1),
+	(1, 2),
+	(2, 2);
+/*!40000 ALTER TABLE `mn_posting_tag` ENABLE KEYS */;
+
+
+-- 테이블 test_demoboard의 구조를 덤프합니다. postings
 DROP TABLE IF EXISTS `postings`;
 CREATE TABLE IF NOT EXISTS `postings` (
   `seq` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -24,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `postings` (
   CONSTRAINT `fk_writer_ref_users` FOREIGN KEY (`fk_writer`) REFERENCES `users` (`seq`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COMMENT='각각의 게시판 글';
 
--- Dumping data for table demoboard.postings: ~3 rows (대략적)
+-- Dumping data for table test_demoboard.postings: ~3 rows (대략적)
 DELETE FROM `postings`;
 /*!40000 ALTER TABLE `postings` DISABLE KEYS */;
 INSERT INTO `postings` (`seq`, `title`, `content`, `views`, `when_created`, `fk_writer`) VALUES
@@ -34,7 +55,25 @@ INSERT INTO `postings` (`seq`, `title`, `content`, `views`, `when_created`, `fk_
 /*!40000 ALTER TABLE `postings` ENABLE KEYS */;
 
 
--- 테이블 demoboard의 구조를 덤프합니다. users
+-- 테이블 test_demoboard의 구조를 덤프합니다. tags
+DROP TABLE IF EXISTS `tags`;
+CREATE TABLE IF NOT EXISTS `tags` (
+  `seq` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tagname` varchar(216) NOT NULL,
+  PRIMARY KEY (`seq`),
+  UNIQUE KEY `tagname` (`tagname`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+
+-- Dumping data for table test_demoboard.tags: ~0 rows (대략적)
+DELETE FROM `tags`;
+/*!40000 ALTER TABLE `tags` DISABLE KEYS */;
+INSERT INTO `tags` (`seq`, `tagname`) VALUES
+	(1, '감자'),
+	(2, '고구마');
+/*!40000 ALTER TABLE `tags` ENABLE KEYS */;
+
+
+-- 테이블 test_demoboard의 구조를 덤프합니다. users
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
   `seq` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -46,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   PRIMARY KEY (`seq`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5002 DEFAULT CHARSET=utf8;
 
--- Dumping data for table demoboard.users: ~2 rows (대략적)
+-- Dumping data for table test_demoboard.users: ~2 rows (대략적)
 DELETE FROM `users`;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` (`seq`, `userid`, `nickname`, `email`, `password`, `when_joined`) VALUES

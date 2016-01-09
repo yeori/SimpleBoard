@@ -74,12 +74,12 @@ public class TestPostingDao {
 		assertNotNull ( second.getWriter());
 		
 		UserVO proxyUser = second.getWriter();
-//		Session session = config.getHbmFactory().openSession();
-//		session.update(proxyUser);
-	//		session.persist(proxyUser); // 
-			assertEquals ("james@naver.com", proxyUser.getEmail());
+		Session session = config.getHbmFactory().openSession();
+		session.update(proxyUser);
+			session.persist(proxyUser); // 
+		assertEquals ("james@naver.com", proxyUser.getEmail());
 		
-//		session.close();
+		session.close();
 	}
 	@Test
 	public void test_board_findAll() {
